@@ -1,8 +1,9 @@
 import expressionParser
 from PIL import Image, ImageDraw, ImageFont
 
-font = ImageFont.truetype("courbd.ttf", 16)
-marginTop = 3
+font = ImageFont.truetype("calibri.ttf", 16)#"courbd.ttf", 16)
+marginTop = 1#3
+lineThickness = 1
 
 backgroundColour = (54, 57, 62, 255)
 foregroundColour = (185, 186, 188, 255)
@@ -91,15 +92,18 @@ def renderPrefixOperation(operator, left):
         return surroundImageWithText("|", imLeft, "|")
 
     if operator == "sqrt":
-        height = imLeft.size[1] + 4
-        sqrtTickWidth = max(4, int(height**0.5))
-        width = imLeft.size[0] + sqrtTickWidth + 5 # Nice padding
+        height = imLeft.size[1] + lineThickness + 2
+        sqrtTickWidth = max(lineThickness+2, int(height**0.5))
+        width = imLeft.size[0] + sqrtTickWidth + lineThickness + 3 # Nice padding
 
-        imSqrt = Image.new("RGBA", (width, height), backgroundColour)
+        # Draw larger then scale down
+        scale = 2
+        imSqrt = Image.new("RGBA", (scale*width, scale*height), backgroundColour)
         draw = ImageDraw.Draw(imSqrt)
-        draw.line([(0, height-int(height**0.75)), (sqrtTickWidth, height), (sqrtTickWidth, 0), (width-2, 0), (width-2, int(height**0.5))], foregroundColour, 2)
+        draw.line([(0, scale*(height-int(height**0.75))), (scale*sqrtTickWidth, scale*height), (scale*sqrtTickWidth, 0), (scale*(width-lineThickness), 0), (scale*(width-lineThickness), scale*int(height**0.5))], foregroundColour, 2*lineThickness)
+        imSqrt = imSqrt.resize((width, height), Image.LANCZOS)
 
-        imSqrt.paste(imLeft, (sqrtTickWidth+2, 4))
+        imSqrt.paste(imLeft, (sqrtTickWidth+lineThickness, lineThickness+2))
 
         return imSqrt
 
@@ -148,11 +152,11 @@ def renderBinaryOperation(left, operator, right):
     imRight = renderExpression(right, rightBrackets)
         
     if operator == "/":
-        divideWidth = max(imLeft.size[0], imRight.size[0]) + 4
+        divideWidth = max(imLeft.size[0], imRight.size[0]) + lineThickness + 2
         
-        imDivide = Image.new("RGBA", (divideWidth, 4), backgroundColour)
+        imDivide = Image.new("RGBA", (divideWidth, lineThickness + 2), backgroundColour)
         draw = ImageDraw.Draw(imDivide)
-        draw.line([(0, 1), (divideWidth, 1)], foregroundColour, 2)
+        draw.line([(0, 1), (divideWidth, 1)], foregroundColour, lineThickness)
         
         return composeImagesVertically(imLeft, imDivide, imRight)
     
@@ -192,6 +196,6 @@ def renderExpression(expression, brackets=False):
         return image
 
 if __name__ == "__main__":
-    expression = expressionParser.Expression("5sin(25x(1-5))")
+    expression = expressionParser.Expression("1+sqrt(5sin((1-x)/2))/5y")
     im = renderExpression(expression)
     im.save("test.png")
