@@ -81,7 +81,8 @@ def composeImagesDiagonally(centre, tl=None, tr=None, bl=None, br=None):
     return im
 
 def renderPrefixOperation(operator, left):
-    imLeft = renderExpression(left)
+    brackets = operator not in ("abs", "sqrt")
+    imLeft = renderExpression(left, brackets)
 
     if operator == "abs":
         return surroundImageWithText("|", imLeft, "|")
@@ -89,7 +90,7 @@ def renderPrefixOperation(operator, left):
     if operator == "sqrt":
         height = imLeft.size[1] + 4
         sqrtTickWidth = max(4, int(height**0.5))
-        width = imLeft.size[0] + sqrtTickWidth + 5 # Random padding
+        width = imLeft.size[0] + sqrtTickWidth + 5 # Nice padding
 
         imSqrt = Image.new("RGBA", (width, height), (255, 255, 255, 255))
         draw = ImageDraw.Draw(imSqrt)
@@ -100,11 +101,26 @@ def renderPrefixOperation(operator, left):
         return imSqrt
 
     # Default
-    return composeImagesHorizontally(renderText(operator), surroundImageWithText("(", imLeft, ")"))
+    return composeImagesHorizontally(renderText(operator), imLeft)
 
 def renderBinaryOperation(left, operator, right):
-    imLeft = renderExpression(left)
-    imRight = renderExpression(right)
+    # Check if brackets are needed
+    if operator in ("+", "/", "C", "^"):
+        leftBrackets = False
+        rightBrackets = False
+    elif operator == "-":
+        leftBrackets = False
+        rightBrackets = right.binaryOperator == "+"
+    elif operator == "*":
+        leftBrackets = left.binaryOperator in ("+", "-")
+        rightBrackets = right.binaryOperator in ("+", "-")
+    else:
+        leftBrackets = True
+        rightBrackets = True
+
+    # Render
+    imLeft = renderExpression(left, leftBrackets)
+    imRight = renderExpression(right, rightBrackets)
 
     if operator == "*":
         operator = "×"
@@ -125,29 +141,35 @@ def renderBinaryOperation(left, operator, right):
         return composeImagesDiagonally(imLeft, tr=imRight)
 
     # Just render side by side
-    return surroundImageWithText("(", composeImagesHorizontally(imLeft, renderText(operator), imRight), ")")
+    return composeImagesHorizontally(imLeft, renderText(operator), imRight)
 
 def renderPostfixOperation(left, operator):
     imLeft = renderExpression(left)
     
     return composeImagesHorizontally(imLeft, renderText(operator))
 
-def renderExpression(expression):
+def renderExpression(expression, brackets=False):
     if type(expression) == expressionParser.Constant:
         return renderText(str(expression))
 
     if expression.prefixOperator != "":
-        return renderPrefixOperation(expression.prefixOperator, expression.left)
+        image = renderPrefixOperation(expression.prefixOperator, expression.left)
     
-    if expression.binaryOperator != "":
-        return renderBinaryOperation(expression.left, expression.binaryOperator, expression.right)
+    elif expression.binaryOperator != "":
+        image = renderBinaryOperation(expression.left, expression.binaryOperator, expression.right)
 
-    if expression.postfixOperator != "":
-        return renderPostfixOperation(expression.left, expression.postfixOperator)
+    elif expression.postfixOperator != "":
+        image = renderPostfixOperation(expression.left, expression.postfixOperator)
 
-    return renderExpression(expression.left)
+    else:
+        image = renderExpression(expression.left)
+
+    if brackets:
+        return surroundImageWithText("(", image, ")")
+    else:
+        return image
 
 if __name__ == "__main__":
-    expression = expressionParser.Expression("sqrt(1+x)/(1-x^2/3!)")
+    expression = expressionParser.Expression("sqrt(1+x)*(1-x^2/3!)")
     im = renderExpression(expression)
-    im.save(f"C:\\Users\\Alex\\Desktop\\TestImages\\Test.png")
+    im.save("test.png")
