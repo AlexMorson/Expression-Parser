@@ -85,7 +85,7 @@ def composeImagesDiagonally(centre, tl=None, tr=None, bl=None, br=None):
     return im
 
 def renderPrefixOperation(operator, left):
-    brackets = operator not in ("abs", "sqrt")
+    brackets = operator not in ("abs", "sqrt", "integral")
     imLeft = renderExpression(left, brackets)
 
     if operator == "abs":
@@ -106,6 +106,11 @@ def renderPrefixOperation(operator, left):
         imSqrt.paste(imLeft, (sqrtTickWidth+lineThickness, lineThickness+2))
 
         return imSqrt
+
+    if operator == "integral":
+        padding = Image.new("RGBA", (1, 5), backgroundColour)
+        imLeft = composeImagesVertically(padding, imLeft, padding)
+        return surroundImageWithText("∫", imLeft, "")
 
     # Default
     return composeImagesHorizontally(renderText(operator), imLeft)
@@ -196,6 +201,6 @@ def renderExpression(expression, brackets=False):
         return image
 
 if __name__ == "__main__":
-    expression = expressionParser.Expression("1+sqrt(5sin((1-x)/2))/5y")
+    expression = expressionParser.Expression("integral(5x-4/5)")
     im = renderExpression(expression)
     im.save("test.png")

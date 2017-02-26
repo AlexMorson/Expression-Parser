@@ -1,13 +1,14 @@
 import math
 
 prefixOperators = {
-    "-": lambda a:-a,
+    "-": lambda a: -a,
     "sin": math.sin,
     "cos": math.cos,
     "tan": math.tan,
     "abs": abs,
     "sqrt": math.sqrt,
-    "ln": math.log
+    "ln": math.log,
+    "integral": lambda a: exec('raise Exception("Nope! Not evaluating integrals yo")')
 }
 
 binaryOperators = {
