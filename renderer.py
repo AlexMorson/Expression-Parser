@@ -4,17 +4,20 @@ from PIL import Image, ImageDraw, ImageFont
 font = ImageFont.truetype("courbd.ttf", 16)
 marginTop = 3
 
+backgroundColour = (54, 57, 62, 255)
+foregroundColour = (185, 186, 188, 255)
+
 def renderText(text):
     if text == "":
-        return Image.new("RGBA", (1, 1), (255, 255, 255, 255))
+        return Image.new("RGBA", (1, 1), backgroundColour)
     
     im = Image.new("RGBA", (1,1))
     draw = ImageDraw.Draw(im)
     width, height = draw.textsize(text, font)
 
-    im = Image.new("RGBA", (width, height-marginTop), (255, 255, 255, 255))
+    im = Image.new("RGBA", (width, height-marginTop), backgroundColour)
     draw = ImageDraw.Draw(im)
-    draw.text((0, -marginTop), text, (0, 0, 0, 255), font)
+    draw.text((0, -marginTop), text, foregroundColour, font)
 
     return im
 
@@ -33,7 +36,7 @@ def composeImagesHorizontally(*images):
     width = sum(image.size[0] for image in images)
     height = max(image.size[1] for image in images)
 
-    im = Image.new("RGBA", (width, height), (255, 255, 255, 255))
+    im = Image.new("RGBA", (width, height), backgroundColour)
     
     currentXPos = 0
     for image in images:
@@ -46,7 +49,7 @@ def composeImagesVertically(*images):
     width = max(image.size[0] for image in images)
     height = sum(image.size[1] for image in images)
 
-    im = Image.new("RGBA", (width, height), (255, 255, 255, 255))
+    im = Image.new("RGBA", (width, height), backgroundColour)
     
     currentYPos = 0
     for image in images:
@@ -69,7 +72,7 @@ def composeImagesDiagonally(centre, tl=None, tr=None, bl=None, br=None):
     width = leftWidth + centre.size[0] + rightWidth
     height = topHeight + centre.size[1] + bottomHeight
 
-    im = Image.new("RGBA", (width, height), (255, 255, 255, 255))
+    im = Image.new("RGBA", (width, height), backgroundColour)
 
     im.paste(centre, (leftWidth, topHeight))
 
@@ -92,9 +95,9 @@ def renderPrefixOperation(operator, left):
         sqrtTickWidth = max(4, int(height**0.5))
         width = imLeft.size[0] + sqrtTickWidth + 5 # Nice padding
 
-        imSqrt = Image.new("RGBA", (width, height), (255, 255, 255, 255))
+        imSqrt = Image.new("RGBA", (width, height), backgroundColour)
         draw = ImageDraw.Draw(imSqrt)
-        draw.line([(0, height-int(height**0.75)), (sqrtTickWidth, height), (sqrtTickWidth, 0), (width-2, 0), (width-2, int(height**0.5))], (0, 0, 0, 255), 2)
+        draw.line([(0, height-int(height**0.75)), (sqrtTickWidth, height), (sqrtTickWidth, 0), (width-2, 0), (width-2, int(height**0.5))], foregroundColour, 2)
 
         imSqrt.paste(imLeft, (sqrtTickWidth+2, 4))
 
@@ -130,6 +133,12 @@ def renderBinaryOperation(left, operator, right):
                     if str(right.left.left).isalpha():
                         operator = ""
                     rightBrackets = False
+                elif right.prefixOperator != "":
+                    if str(left.left).isalpha():
+                        rightBrackets = False
+                    else:
+                        rightBrackets = False
+                        operator = ""
                 else:
                     rightBrackets = True
                     operator = ""
@@ -141,9 +150,9 @@ def renderBinaryOperation(left, operator, right):
     if operator == "/":
         divideWidth = max(imLeft.size[0], imRight.size[0]) + 4
         
-        imDivide = Image.new("RGBA", (divideWidth, 4), (255, 255, 255, 255))
+        imDivide = Image.new("RGBA", (divideWidth, 4), backgroundColour)
         draw = ImageDraw.Draw(imDivide)
-        draw.line([(0, 1), (divideWidth, 1)], (0, 0, 0, 255), 2)
+        draw.line([(0, 1), (divideWidth, 1)], foregroundColour, 2)
         
         return composeImagesVertically(imLeft, imDivide, imRight)
     
@@ -183,6 +192,6 @@ def renderExpression(expression, brackets=False):
         return image
 
 if __name__ == "__main__":
-    expression = expressionParser.Expression("5abc(25x(1-5))")
+    expression = expressionParser.Expression("5sin(25x(1-5))")
     im = renderExpression(expression)
     im.save("test.png")
