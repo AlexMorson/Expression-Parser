@@ -105,7 +105,7 @@ def renderPrefixOperation(operator, left):
 
 def renderBinaryOperation(left, operator, right):
     # Check if brackets are needed
-    if operator in ("+", "/", "C", "^"):
+    if operator in ("=", "+", "/", "C", "^"):
         leftBrackets = False
         rightBrackets = False
     elif operator == "-":
