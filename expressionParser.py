@@ -6,7 +6,8 @@ prefixOperators = {
     "cos": math.cos,
     "tan": math.tan,
     "abs": abs,
-    "sqrt": math.sqrt
+    "sqrt": math.sqrt,
+    "ln": math.log
 }
 
 binaryOperators = {
