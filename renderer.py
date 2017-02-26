@@ -118,12 +118,25 @@ def renderBinaryOperation(left, operator, right):
         leftBrackets = True
         rightBrackets = True
 
+    # Remove extra multiplication signs
+    if operator == "*":
+        operator = "×"
+        if left.isConstant():
+            if right.isConstant():
+                if str(right.left).isalpha():
+                    operator = ""
+            else:
+                if right.binaryOperator == "*" and right.left.isConstant():
+                    if str(right.left.left).isalpha():
+                        operator = ""
+                    rightBrackets = False
+                else:
+                    rightBrackets = True
+                    operator = ""
+
     # Render
     imLeft = renderExpression(left, leftBrackets)
     imRight = renderExpression(right, rightBrackets)
-
-    if operator == "*":
-        operator = "×"
         
     if operator == "/":
         divideWidth = max(imLeft.size[0], imRight.size[0]) + 4
@@ -170,6 +183,6 @@ def renderExpression(expression, brackets=False):
         return image
 
 if __name__ == "__main__":
-    expression = expressionParser.Expression("sqrt(1+x)*(1-x^2/3!)")
+    expression = expressionParser.Expression("5abc(25x(1-5))")
     im = renderExpression(expression)
     im.save("test.png")

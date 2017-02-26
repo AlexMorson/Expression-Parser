@@ -146,6 +146,9 @@ Postfix Operator = {self.postfixOperator}"""
     def __str__(self):
         return f"{self.prefixOperator}({str(self.left)}{self.binaryOperator}{str(self.right)}{self.postfixOperator})"
 
+    def isConstant(self):
+        return type(self.left) == Constant
+
     def evaluate(self):
         if self.prefixOperator != "" or self.postfixOperator != "":
             try:
